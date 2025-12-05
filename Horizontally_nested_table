@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      td, th {
+        border: 1px solid #ccc;
+        padding: 6px 50px;
+      }
+    </style>
+  </head>
+
+  <body>
+    
+	<div id="root"></div>
+
+    <script type="text/babel">
+	
+	var users = [
+		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 0 },
+		{ name: 'barney', age: 50, size: 'L', color: 'verde', sons: 1 },
+		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 2 },
+		{ name: 'barney', age: 50, size: 'L', color: 'bianco', sons: 0 },
+		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 3 },
+		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 4 },
+		{ name: 'barney', age: 70, size: 'S', color: 'grigio', sons: 1 },
+		{ name: 'barney', age: 50, size: 'S', color: 'verde', sons: 5 },
+		{ name: 'barney', age: 50, size: 'S', color: 'verde', sons: 1 },		
+		{ name: 'barney', age: 50, size: 'S', color: 'rosa', sons: 2 },
+		{ name: 'barney', age: 50, size: 'S', color: 'grigio', sons: 0 },
+		{ name: 'barney', age: 30, size: 'L', color: 'blue', sons: 0 },
+		{ name: 'barney', age: 30, size: 'S', color: 'blue', sons: 3 },
+		{ name: 'barney', age: 30, size: 'L', color: 'blue', sons: 2 },
+		{ name: 'barney', age: 20, size: 'M', color: 'fuxia', sons: 0 },
+		{ name: 'barney', age: 20, size: 'L', color: 'rosso', sons: 3 },
+		{ name: 'barney', age: 20, size: 'M', color: 'verde', sons: 2 },
+
+		{ name: 'vilma', age: 60, size: 'L', color: 'blue', sons: 0 },
+		{ name: 'vilma', age: 40, size: 'L', color: 'blue', sons: 3 },
+		{ name: 'vilma', age: 20, size: 'M', color: 'verde', sons: 2 },
+		{ name: 'vilma', age: 40, size: 'L', color: 'rosso', sons: 3 },
+		{ name: 'vilma', age: 20, size: 'M', color: 'verde', sons: 0 },
+		
+		{ name: 'fred', age: 30, size: 'L', color: 'blue', sons: 3 },
+		{ name: 'fred', age: 20, size: 'M', color: 'verde', sons: 0 },
+		{ name: 'fred', age: 20, size: 'L', color: 'rosso', sons: 3 },
+		{ name: 'fred', age: 20, size: 'M', color: 'verde', sons: 2 },
+		{ name: 'fred', age: 50, size: 'S', color: 'grigio', sons: 3 },
+		{ name: 'fred', age: 50, size: 'M', color: 'bianco', sons: 0 },
+	];
+
+	const columns = _.keys(users[0]);
+	const labels = ['Names', 'Ages', 'Sizes', 'Colors', 'Sons']
+
+	function getCols(list, pos) {
+		return _(list)
+		.groupBy(columns[pos])
+		.map((v, k) => ({
+		  key: k,
+		  rowspan: v.length,
+		  nextTd: columns[pos + 1] ? getCols(v, pos + 1) : null, 
+		}))
+		.value()
+	};
+	
+	function createTd(trs, obj) {
+		trs[trs.length - 1].push({key: obj.key, rowspan: obj.rowspan})
+		if (obj.nextTd == null && obj.rowspan > 1) {
+			for(var j = 1; j < obj.rowspan; j++) {
+				trs[trs.length] = []
+			}
+		}
+	}
+	
+	function createTds(nextTd, trs){
+		if(nextTd) {
+			for(var i = 0; i < nextTd.length; i++) {
+				var obj = nextTd[i]
+				if(i > 0) {
+					trs[trs.length] = []
+				}
+				createTd(trs, obj)
+				createTds(obj.nextTd, trs)
+			}
+		}
+	}
+	
+	function createTrs(list) {
+		var trs = []
+		for(var i = 0; i < list.length; i++) {
+			var obj = list[i]
+			trs[trs.length] = [{key: obj.key, rowspan: obj.rowspan}]
+			createTds(obj.nextTd, trs)
+		}
+		return trs;
+	}
+
+	function CreateTable({ rows }) {
+		return (
+			<table>
+				<thead>
+				  <tr>
+					{labels.map((label, i) => (
+					  <th key={i}>{label}</th>
+					))}
+				  </tr>
+				</thead>
+				<tbody>
+				  {rows.map((k, i) => (
+					<tr key={i}>
+					{rows[i].map((obj, j) => (
+					<td key={j} rowSpan={obj.rowspan}>{obj.key} - quantity: {obj.rowspan}</td>
+					))}
+					</tr>
+				  ))}
+				</tbody>
+			</table>
+		);
+	}
+
+	ReactDOM.createRoot(document.getElementById("root")).render(
+		<div>
+			<h2>Tabella con rowspan</h2>
+			<CreateTable rows={createTrs(getCols(users, 0))} />
+		</div>
+	);
+
+    </script>
+  </body>
+</html>
