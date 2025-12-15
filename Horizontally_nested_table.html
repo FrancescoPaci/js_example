@@ -28,9 +28,9 @@
 	var users = [
 		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 0 },
 		{ name: 'barney', age: 50, size: 'L', color: 'verde', sons: 1 },
-		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 2 },
+		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 0 },
 		{ name: 'barney', age: 50, size: 'L', color: 'bianco', sons: 0 },
-		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 3 },
+		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 4 },
 		{ name: 'barney', age: 50, size: 'L', color: 'grigio', sons: 4 },
 		{ name: 'barney', age: 70, size: 'S', color: 'grigio', sons: 1 },
 		{ name: 'barney', age: 50, size: 'S', color: 'verde', sons: 5 },
@@ -42,9 +42,10 @@
 		{ name: 'barney', age: 30, size: 'L', color: 'blue', sons: 2 },
 		{ name: 'barney', age: 20, size: 'M', color: 'fuxia', sons: 0 },
 		{ name: 'barney', age: 20, size: 'L', color: 'rosso', sons: 3 },
-		{ name: 'barney', age: 20, size: 'M', color: 'verde', sons: 2 },
+		{ name: 'barney', age: 20, size: 'M', color: 'verde', sons: 0 },
 
 		{ name: 'vilma', age: 60, size: 'L', color: 'blue', sons: 0 },
+		{ name: 'vilma', age: 40, size: 'L', color: 'blue', sons: 3 },
 		{ name: 'vilma', age: 40, size: 'L', color: 'blue', sons: 3 },
 		{ name: 'vilma', age: 20, size: 'M', color: 'verde', sons: 2 },
 		{ name: 'vilma', age: 40, size: 'L', color: 'rosso', sons: 3 },
@@ -60,6 +61,7 @@
 
 	const columns = _.keys(users[0]);
 	const labels = ['Names', 'Ages', 'Sizes', 'Colors', 'Sons']
+	var trs = []
 
 	function getCols(list, pos) {
 		return _(list)
@@ -67,39 +69,34 @@
 		.map((v, k) => ({
 		  key: k,
 		  rowspan: v.length,
-		  nextTd: columns[pos + 1] ? getCols(v, pos + 1) : null, 
+		  nextTd: columns[pos + 1] ? getCols(v, pos + 1) : null,
 		}))
 		.value()
 	};
-	
-	function createTd(trs, obj) {
-		trs[trs.length - 1].push({key: obj.key, rowspan: obj.rowspan})
-		if (obj.nextTd == null && obj.rowspan > 1) {
-			for(var j = 1; j < obj.rowspan; j++) {
-				trs[trs.length] = []
-			}
-		}
-	}
-	
-	function createTds(nextTd, trs){
+
+	function createTds(nextTd){
 		if(nextTd) {
 			for(var i = 0; i < nextTd.length; i++) {
 				var obj = nextTd[i]
 				if(i > 0) {
 					trs[trs.length] = []
 				}
-				createTd(trs, obj)
-				createTds(obj.nextTd, trs)
+				trs[trs.length - 1].push({key: obj.key, rowspan: obj.rowspan})
+				if (obj.nextTd == null && obj.rowspan > 1) {
+					for(var j = 1; j < obj.rowspan; j++) {
+						trs[trs.length] = []
+					}
+				}
+				createTds(obj.nextTd)
 			}
 		}
 	}
 	
 	function createTrs(list) {
-		var trs = []
 		for(var i = 0; i < list.length; i++) {
 			var obj = list[i]
 			trs[trs.length] = [{key: obj.key, rowspan: obj.rowspan}]
-			createTds(obj.nextTd, trs)
+			createTds(obj.nextTd)
 		}
 		return trs;
 	}
